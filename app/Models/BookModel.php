@@ -8,7 +8,7 @@ class BookModel extends Model
 {
     protected $table            = 'books';
     protected $primaryKey       = 'id_book';
-    protected $useAutoIncrement = true; // created_at, updated_at
+    protected $useAutoIncrement = true;
     protected $useSoftDeletes   = true; // deleted_at
     protected $allowedFields    = [
         'code_book',
@@ -21,5 +21,5 @@ class BookModel extends Model
     ];
 
     // Dates
-    protected $useTimestamps = false;
+    protected $useTimestamps = true; // created_at, updated_at
 }

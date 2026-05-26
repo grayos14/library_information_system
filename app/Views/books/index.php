@@ -9,7 +9,32 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="card">
+<!-- The Modal -->
+<div class="modal" id="formModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Modal Heading</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        Modal body..
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="card" id="bookCard">
     <div class="card-header">
         <h3 class="card-title">Data Buku</h3>
 
@@ -18,58 +43,108 @@
                 <?= session()->getFlashdata('success') ?>
             </div>
         <?php endif; ?>
-        
+
         <?php if(session()->getFlashdata('error')): ?>
             <div class="alert alert-danger">
                 <?= session()->getFlashdata('error') ?>
             </div>
         <?php endif; ?>
-        
+
         <div class="card-tools">
-            <a href="<?= base_url('create/book') ?>" class="btn btn-primary btn-sm">
+            <a href="<?= base_url('create/book') ?>" class="btn btn-primary btn-sm" id="addBtn" data-toggle="modal" data-target="#formModal">
                 <i class="fas fa-plus"></i> Tambah Buku
             </a>
         </div>
     </div>
 
     <div class="card-body table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th width="50">No.</th>
-                    <th>Judul Buku</th>
-                    <th>Kode Buku</th>
-                    <th>ISBN</th>
-                    <th>Penulis</th>
-                    <th>Penerbit</th>
-                    <th>Tahun Terbit</th>
-                    <th>Keterangan</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php $no=0; ?>
-                <?php foreach($books as $book): ?>
-                    <?php $no++; ?>
-                    <tr>
-                        <td><?php echo $no ?></td>
-                        <td><?php echo $book['title_book'] ?></td>
-                        <td><?php echo $book['code_book'] ?></td>
-                        <td><?php echo $book['isbn_book'] ?></td>
-                        <td><?php echo $book['author_book'] ?></td>
-                        <td><?php echo $book['publisher_book'] ?></td>
-                        <td><?php echo $book['published_year'] ?></td>
-                        <td><?php echo $book['description_book'] ?></td>
-                        <td>
-                            <a href="<?= base_url('edit/book/' . $book['id_book']) ?>" class="btn btn-info btn-sm">Edit</a>
-                            <form action="<?= base_url('delete/book/' . $book['id_book']) ?>" method="post" style="display: inline;">
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus buku ini?')">Hapus</button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
+        <table class="table table-bordered table-striped" id="bookTable">
         </table>
     </div>
 </div>
+<?= $this->endsection() ?>
+
+
+<?= $this->section('js') ?>
+<script>
+    function requestAjax(urlParams, methodParams='GET', dataType='html', successFunction=null, dataParams=null) {
+         $.ajax({
+            url: urlParams,
+            method: methodParams,
+            data: dataParams,
+            dataType: dataType, //html or json
+            success: function(data) {
+                if(successFunction != null && typeof successFunction === 'function') successFunction(data);
+                else $("#bookTable").html(data);
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error: " + status + ": " + error);
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        requestAjax("<?= base_url('list/books/table'); ?>");
+        
+        $('#bookTable').on('click', '.deleteBtn', function(e) {
+            e.preventDefault();
+            const isConfirmed = confirm('Apakah user yakin akan menghapus data ini?');
+            if(isConfirmed == true) {
+                const urlParams = $(this).closest('form').attr('action');
+                requestAjax(urlParams, 'POST', 'json', function(response){
+                    if(response.code==200) {
+                        alert(response.message);
+                        requestAjax("<?= base_url('list/books/table'); ?>");
+                    }
+                });
+            }
+        });
+
+        $('#bookCard').on('click', '#addBtn', function(e) {
+            e.preventDefault();
+            const urlParams = "<?= base_url('ajax/create/book') ?>";
+            requestAjax(urlParams, 'GET', 'html', function(response) {
+                $('#formModal .modal-title').html('Form Tambah Buku');
+                $('#formModal .modal-body').html(response);
+                $('#formModal').modal('show');
+            });
+        });
+
+        $('#formModal').on('click', '#saveButton', function(e) {
+            e.preventDefault();
+            const urlParams = "<?= base_url('create/book') ?>";
+            const formData = $('#bookForm').serialize();
+            requestAjax(urlParams, 'POST', 'json', function(response) {
+                if(response.code == 200) {
+                    alert(response.message);
+                    $('#formModal').modal('hide');
+                    requestAjax("<?= base_url('list/books/table'); ?>");
+                }
+            }, formData);
+        });
+
+         $('#bookTable').on('click', '.editBtn', function(e) {
+            e.preventDefault();
+            const urlParams = $(this).attr('href');
+            requestAjax(urlParams, 'GET', 'html', function(response) {
+                $('#formModal .modal-title').html('Form Edit Buku');
+                $('#formModal .modal-body').html(response);
+                $('#formModal').modal('show');
+            });
+         }); 
+
+         $('#formModal').on('click', '#updateButton', function(e) {
+            e.preventDefault();
+            const urlParams = "<?= base_url('update/book') ?>";
+            const formData = $('#editBookForm').serialize();
+            requestAjax(urlParams, 'POST', 'json', function(response) {
+                if(response.code == 200) {
+                    alert(response.message);
+                    $('#formModal').modal('hide');
+                    requestAjax("<?= base_url('list/books/table') ?>");
+                }
+            }, formData);
+         });
+    });
+</script>
 <?= $this->endsection() ?>

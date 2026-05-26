@@ -23,12 +23,25 @@
                 </li>
 
                 <li class="nav-item">
-                    <a href="<?= base_url('/list/users') ?>" class="nav-link">
+                    <a href="<?= base_url('/list/members') ?>" class="nav-link">
                         <i class="nav-icon fas fa-users"></i>
                         <p>Master Member</p>
                     </a>
                 </li>
 
+                <li class="nav-item">
+                    <a href="<?= base_url('/list/transactions') ?>" class="nav-link">
+                        <i class="nav-icon fas fa-exchange-alt"></i>
+                        <p>Transaksi Peminjaman</p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="<?= base_url('/list/pengembalian') ?>" class="nav-link">
+                        <i class="nav-icon fas fa-exchange-alt"></i>
+                        <p>Transaksi Pengembalian</p>
+                    </a>
+                </li>
             </ul>
         </nav>
     </div>
